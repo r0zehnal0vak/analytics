@@ -3,29 +3,12 @@ fastapi[all]
 uvicorn[standard]
 gunicorn
 
-asyncpg
-
-sqlalchemy
-sqlalchemy_utils
-
 pydantic
 starlette
-strawberry-graphql
-click
-aiodataloader
-websockets
-
-bokeh
-panel
 pandas
-nvconvert
-streamlit
-streamlit-cookies-controller
 
 matplotlib
 
 aiohttp
-requests
-pyjwt[crypto]
 prometheus-client
 prometheus_fastapi_instrumentator
