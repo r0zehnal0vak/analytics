@@ -1,5 +1,5 @@
 from src.utils import flatten, queryGQL
-
+import pandas as pd
 
 async def ResolveA01(variables, cookies):
 
