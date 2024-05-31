@@ -14,91 +14,14 @@ async def lifespan(app: FastAPI):
     yield
     # Clean up the ML models and release the resources
        
-async def queryGQL(request, query, variables):
-    # gqlurl = "http://host.docker.internal:33001/api/gql"
-    gqlurl = "http://localhost:33001/api/gql"
-    
-    payload = {"query": query, "variables": variables}
-    cookies = request.cookies
-    async with aiohttp.ClientSession() as session:
-        # print(headers, cookies)
-        async with session.post(gqlurl, json=payload, cookies=cookies) as resp:
-            # print(resp.status)
-            if resp.status != 200:
-                text = await resp.text()
-                print(text, flush=True)
-                raise Exception(f"Unexpected GQL response", text)
-            else:
-                text = await resp.text()
-                # print(text, flush=True)
-                response = await resp.json()
-                # print(response, flush=True)
-                return response
 
 
-async def ResolveA01(request):
+from src.analysis_000 import (
+    table as table001,
+    chart as chart001
+)
 
-    q="""
-query ($where: GroupInputWhereFilter) {
-  result: groupPage(limit: 10000, where: $where) {
-    id
-    name
-    grouptype {
-      id
-      name
-    }
-    memberships(limit: 1000) {
-      user {
-        id
-        email
-      }
-    }
-  }
-}
-"""
-
-    params = request.query_params
-    variables = dict(params)
-    if "where" in variables:
-        wherevalue = variables["where"]
-        wherevalue = re.sub(r'{([^:"]*):', r'{"\1":', wherevalue)
-        print(wherevalue)
-        variables["where"] = json.loads(wherevalue)
-    print("variables", variables, flush=True)
-    jsonresponse = await queryGQL(
-        request=request,
-        query=q,
-        variables=variables
-        )
-    
-    data = jsonresponse.get("data", {"result": None})
-    result = data.get("result", None)
-    assert result is not None, f"got {jsonresponse}"
-    # print(result, flush=True)
-
-    mapped = [{**group} for group in result]
-    # print(mapped, flush=True)
-    mapper = {
-        "group_name": "name",
-        "group_id": "id",
-        "user": "memberships.user.email"
-    }
-
-    from src.utils import flatten
-    
-    pivotdata = list(flatten(mapped, {}, mapper))
-    print(pivotdata)
-    df = pd.DataFrame(pivotdata)
-
-    pdf = pd.pivot_table(df, values="user", index="group_name", columns=[], aggfunc="count")
-
-    return pdf
-
-app = FastAPI(lifespan=lifespan)
-
-@app.get("/analysis/table")
-async def analyse(request: Request):
-    template = """
+template = """
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <style>
 th {
@@ -112,33 +35,58 @@ th {
 </body>
 """
 
-    df = await ResolveA01(request)
-    # print(pivotdata, flush=True)
+register = [
+    {
+        "uri": "/group/table",
+        "name": "tabulka",
+        "description": "Tabulka počtu členů skupin",
+        "resolver": table001,
+        
+    },
+    {
+        "uri": "/group/chart",
+        "name": "Graf",
+        "description": "Graf počtu členů skupin",
+        "resolver": chart001,
+        
+    },    
+]
 
-    classes = 'table table-striped table-bordered table-hover table-sm'
-    html = template % df.to_html(classes=classes)    
-    # html = df.to_html()
-    # print(html, flush=True)
-    return HTMLResponse(html)
+def cookieExtract(request):
+    return request.cookies
 
+def variablesExtract(request):
+    params = request.query_params
+    variables = dict(params)
+    if "where" in variables:
+        wherevalue = variables["where"]
+        wherevalue = re.sub(r'{([^:"]*):', r'{"\1":', wherevalue)
+        print(wherevalue)
+        variables["where"] = json.loads(wherevalue)
+    return variables
 
-from io import BytesIO
-import matplotlib.pyplot as plt
-@app.get("/analysis/figure")
-async def analyse(request: Request):
+def createhtmlresolver(registereditem):
+    resolver = registereditem["resolver"]
+    cookieExtractor = registereditem.get("cookieExtractor", cookieExtract)
+    variablesExtractor = registereditem.get("variablesExtractor", variablesExtract)
 
-    df = await ResolveA01(request)
+    async def resolveashtml(request: Request):
+        cookies = cookieExtractor(request)
+        variables = variablesExtractor(request)
 
-    plot = df.plot.pie(
-        figsize=(40, 20), 
-        subplots=True,
-        legend=False,
-        rotatelabels=True
-        )
-    with BytesIO() as f:
-        plt.savefig(f, format="svg")
-        svgresult = f.getvalue().decode()
-        print(svgresult[:1000])
-    lines = svgresult.split('\n')
+        result = await resolver(variables, cookies) 
+        response = HTMLResponse(result)
+        return response
+    resolveashtml.__doc__ = resolver.__doc__
+    description = registereditem.get("description", None)
+    if description not in [None, ""]:
+        resolveashtml.__doc__ = description
 
-    return HTMLResponse('\n'.join(lines[3:]))
+    return resolveashtml    
+
+app = FastAPI(lifespan=lifespan)
+
+for registereditem in register:
+    app.get(f'/analysis{registereditem["uri"]}', name=registereditem.get("name", None))(
+        createhtmlresolver(registereditem)
+    )
