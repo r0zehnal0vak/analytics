@@ -1,1 +1,1 @@
-_BOKEH_ALLOW_WS_ORIGIN=localhost:8000
+GQL_PROXY=http://apollo:3000/api/gql/
