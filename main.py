@@ -21,6 +21,11 @@ from src.analysis_000 import (
     chart as chart001
 )
 
+from src.analysis_001 import (
+    table as table002,
+    chart as chart002
+)
+
 template = """
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <style>
@@ -43,13 +48,27 @@ register = [
         "resolver": table001,
         
     },
-    {
+{
         "uri": "/group/chart",
         "name": "Graf",
         "description": "Graf počtu členů skupin",
         "resolver": chart001,
         
+    },            
+    {
+        "uri": "/user/presence/chart",
+        "name": "Graf",
+        "description": "Graf počtu hodin",
+        "resolver": chart002,
+        
     },    
+    {
+        "uri": "/user/presence/table",
+        "name": "tabulka",
+        "description": "Tabulka počtu hodin",
+        "resolver": table002,
+    },
+    
 ]
 
 def cookieExtract(request):
