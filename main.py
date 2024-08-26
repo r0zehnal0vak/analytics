@@ -80,7 +80,7 @@ def variablesExtract(request):
     if "where" in variables:
         wherevalue = variables["where"]
         wherevalue = re.sub(r'{([^:"]*):', r'{"\1":', wherevalue)
-        print(wherevalue)
+        print(wherevalue, flush=True)
         variables["where"] = json.loads(wherevalue)
     return variables
 
@@ -109,3 +109,33 @@ for registereditem in register:
     app.get(f'/analysis{registereditem["uri"]}', name=registereditem.get("name", None))(
         createhtmlresolver(registereditem)
     )
+from src.analysis_001 import createRouter
+
+app.include_router(createRouter(prefix="/analysis"))
+
+from src.analysis_000 import createRouter as createRouter000
+app.include_router(createRouter000(prefix="/analysis"))
+
+from src.analysis_999 import createrouter as createRouter999
+app.include_router(createRouter999(prefix="/analysis"))
+
+from src.analysis_002 import createRouter as createRouter002
+app.include_router(createRouter002(prefix="/analysis"))
+
+from src.analysis_004 import createRouter as createRouter004
+app.include_router(createRouter004(prefix="/analysis"))
+
+from src.analysis_005 import createRouter as createRouter005
+app.include_router(createRouter005(prefix="/analysis"))
+
+from src.analysis_006 import createRouter as createRouter006
+app.include_router(createRouter006(prefix="/analysis"))
+
+from src.analysis_007 import createRouter as createRouter007
+app.include_router(createRouter007(prefix="/analysis"))
+
+from src.analysis_008 import createRouter as createRouter008
+app.include_router(createRouter008(prefix="/analysis"))
+
+from src.analysis_009 import createRouter as createRouter009
+app.include_router(createRouter009(prefix="/analysis"))

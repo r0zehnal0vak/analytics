@@ -1,7 +1,7 @@
 from src.utils import flatten, queryGQL
 import pandas as pd
 
-async def ResolveA01(variables, cookies):
+async def resolve_json(variables, cookies):
 
     q="""
 query ($where: GroupInputWhereFilter) {
@@ -32,7 +32,10 @@ query ($where: GroupInputWhereFilter) {
     result = data.get("result", None)
     assert result is not None, f"got {jsonresponse}"
     # print(result, flush=True)
+    return result
 
+async def resolve_flat_json(variables, cookies):
+    result = await resolve_json(variables=variables, cookies=cookies)
     mapped = [{**group} for group in result]
     # print(mapped, flush=True)
     mapper = {
@@ -42,9 +45,18 @@ query ($where: GroupInputWhereFilter) {
     }
 
     pivotdata = list(flatten(mapped, {}, mapper))
-    print(pivotdata)
+    # print(pivotdata)
+    
+    return pivotdata
+
+async def resolve_df_pivot(variables, cookies):
+    pivotdata = await resolve_flat_json(variables=variables, cookies=cookies)
+
+    # print(pivotdata)
     df = pd.DataFrame(pivotdata)
 
     pdf = pd.pivot_table(df, values="user", index="group_name", columns=[], aggfunc="count")
 
     return pdf
+
+ResolveA01 = resolve_df_pivot

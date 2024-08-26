@@ -8,6 +8,7 @@ starlette
 pandas
 
 matplotlib
+openpyxl
 
 aiohttp
 prometheus-client

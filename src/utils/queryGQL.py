@@ -7,6 +7,7 @@ async def queryGQL(query, variables, cookies):
     # gqlurl = "http://localhost:33001/api/gql"
     
     payload = {"query": query, "variables": variables}
+    print("Query payload", payload, flush=True)
     async with aiohttp.ClientSession() as session:
         # print(headers, cookies)
         async with session.post(gqlurl, json=payload, cookies=cookies) as resp:
