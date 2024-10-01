@@ -116,9 +116,6 @@ app.include_router(createRouter(prefix="/analysis"))
 from src.analysis_000 import createRouter as createRouter000
 app.include_router(createRouter000(prefix="/analysis"))
 
-from src.analysis_999 import createrouter as createRouter999
-app.include_router(createRouter999(prefix="/analysis"))
-
 from src.analysis_002 import createRouter as createRouter002
 app.include_router(createRouter002(prefix="/analysis"))
 
@@ -139,3 +136,9 @@ app.include_router(createRouter008(prefix="/analysis"))
 
 from src.analysis_009 import createRouter as createRouter009
 app.include_router(createRouter009(prefix="/analysis"))
+
+from src.analysis_999 import createrouter as createRouter999
+app.include_router(createRouter999(prefix="/analysis"))
+
+from src.analysis_calendar import createRouter as createRouter_calendar
+app.include_router(createRouter_calendar(prefix="/analysis"))

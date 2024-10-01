@@ -69,10 +69,12 @@ def createrouter(prefix: str):
         
         result = []
         template = None
+        resultfilename = "VsechnyVykazy.xlsx"
         for index, file in enumerate(files):
             contents = await file.read()
             memory = io.BytesIO(contents)
             if index == 0:
+                resultfilename = file.filename
                 template = contents
             wb = openpyxl.load_workbook(filename=memory, read_only=True)
             ws = wb['DataCelyRok']
@@ -115,8 +117,8 @@ def createrouter(prefix: str):
                 print(currentName)
                 
                 names = currentName.split(' ')
-                currentWs[f'B10'] = names[0]
-                currentWs[f'B11'] = names[1]
+                currentWs[f'C10'] = names[0]
+                currentWs[f'C11'] = names[1]
                 
                 currentWs[f'C12'] = datetime.datetime(year=item['date'].year, month=item['date'].month, day=1)
                 if item['date'].month == 12:
@@ -136,14 +138,18 @@ def createrouter(prefix: str):
             rowIndex = rowIndex + 1
             
             
-            resultFileCelyRok.insert_rows(2)
-            resultFileCelyRok['A2'] = currentName
-            resultFileCelyRok['B2'] = item['date'].month
-            resultFileCelyRok['C2'] = item['date']
-            resultFileCelyRok['D2'] = item['desc']
-            resultFileCelyRok['E2'] = item['hours']
-            for col in ['A', 'B', 'C', 'D', 'E', 'F']:
-                resultFileCelyRok[f'{col}2']._style = copy(resultFileCelyRok[f'{col}3']._style)
+            # resultFileCelyRok.insert_rows(2)
+            # resultFileCelyRok['A2'] = currentName
+            # resultFileCelyRok['B2'] = item['date'].month
+            # resultFileCelyRok['C2'] = item['date']
+            # resultFileCelyRok['D2'] = item['desc']
+            # resultFileCelyRok['E2'] = item['hours']
+            # for col in ['A', 'B', 'C', 'D', 'E', 'F']:
+            #     resultFileCelyRok[f'{col}2']._style = copy(resultFileCelyRok[f'{col}3']._style)
+
+
+
+
             #resultFileCelyRok.append([currentName, item['month'], item['date'], item['desc'], item['hours']])
         
         with NamedTemporaryFile() as tmp:
@@ -152,7 +158,7 @@ def createrouter(prefix: str):
             tmp.seek(0)
             stream = tmp.read()
             headers = {
-                'Content-Disposition': 'attachment; filename="VsechnyVykazy.xlsx"'
+                'Content-Disposition': f'attachment; filename="{resultfilename}"'
             }
             return Response(stream, media_type='application/vnd.ms-excel', headers=headers)
     return router
