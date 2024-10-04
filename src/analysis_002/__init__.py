@@ -107,13 +107,13 @@ def createRouter(prefix):
         "HTML tabulka s daty pro výpočet kontingenční tabulky"
         wherevalue = None if where is None else re.sub(r'{([^:"]*):', r'{"\1":', where) 
         wherejson = json.loads(wherevalue)
-        pd = await resolve_flat_json(
+        table = await resolve_flat_json(
             variables={
                 "where": wherejson
             },
             cookies=request.cookies
         )
-        df = pd.DataFrame(pd)
+        df = pd.DataFrame(table)
         return await process_df_as_html_page(df)
     
     @router.get(f"{mainpath}/flatjson", tags=tags, summary="Data ve formátu JSON transformována do podoby vstupu pro kontingenční tabulku")
