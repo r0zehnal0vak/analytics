@@ -116,6 +116,43 @@ def createRouter(prefix):
         df = pd.DataFrame(table)
         return await process_df_as_html_page(df)
     
+    @router.get(f"{mainpath}/pivot", tags=tags, summary="Pivot table with subject and class level")
+    async def pivot_table(
+        request: Request,
+        where: str = Query(description=WhereDescription)
+    ):
+        """
+        Pivot table for subject and average class level based on grade mapping
+        """
+        wherevalue = None if where is None else re.sub(r'{([^:"]*):', r'{"\1":', where) 
+        wherejson = json.loads(wherevalue)
+        table = await resolve_flat_json(
+            variables={
+                "where": wherejson
+            },
+            cookies=request.cookies
+        )
+        
+        df = pd.DataFrame(table)
+        grade_mapping = {   # map grades to numeric values
+            "A": 1.0,
+            "B": 1.5,
+            "C": 2.0,
+            "D": 2.5,
+            "E": 3.0,
+            "F": 3.5
+        }
+
+        df['classification_level_numeric'] = df['classification_level'].map(grade_mapping)
+        pivot_table = df.pivot_table(
+            index='classification_subject_name', 
+            values='classification_level_numeric', 
+            aggfunc='mean'
+        ).reset_index()
+
+        pivot_table.columns = ['Subject', 'Average Class Level']
+        return await process_df_as_html_page(pivot_table)
+        
     @router.get(f"{mainpath}/flatjson", tags=tags, summary="Data ve formátu JSON transformována do podoby vstupu pro kontingenční tabulku")
     async def user_classification_flat_json(
         request: Request, 
